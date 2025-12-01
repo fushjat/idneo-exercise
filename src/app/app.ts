@@ -1,12 +1,17 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { TemperatureDashboardPage } from './features/dashboards/dashboard-temperature/temperature.dashboard.page';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  imports: [TemperatureDashboardPage],
+  standalone: true,
+  templateUrl: 'app.html',
+  styleUrls: ['./app.css'],
 })
 export class App {
-  protected readonly title = signal('idneo-exercise');
+  theme = inject(ThemeService);
+  toggleTheme() {
+    this.theme.toggleTheme();
+  }
 }

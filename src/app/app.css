@@ -1,0 +1,14 @@
+.app-container {
+  padding: 20px;
+}
+
+.dark {
+  background: #222;
+  color: white;
+}
+
+.theme-btn {
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
