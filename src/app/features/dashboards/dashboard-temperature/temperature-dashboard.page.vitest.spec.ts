@@ -2,60 +2,50 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { runInInjectionContext, createEnvironmentInjector } from '@angular/core';
 import type { TemperatureDashboardPage } from './temperature.dashboard.page';
 
-type SubscribeObserver<T> = ((value: T) => void) | { next?: (value: T) => void };
-
 class FakeTemperatureStream {
-  private listeners: ((arr: number[]) => void)[] = [];
-  private activeSubs: ((b: boolean) => void)[] = [];
+  private tempListeners = new Set<(arr: number[]) => void>();
+  private activeListeners = new Set<(b: boolean) => void>();
+
   startListening() {
-    this.activeSubs.forEach((s) => s(true));
+    this.emitActive(true);
   }
+
   stopListening() {
-    this.activeSubs.forEach((s) => s(false));
+    this.emitActive(false);
   }
-  getTemperatures(): {
-    subscribe: (observerOrNext: SubscribeObserver<number[]>) => { unsubscribe(): void };
-  } {
+
+  getTemperatures() {
     return {
-      subscribe: (observerOrNext: SubscribeObserver<number[]>) => {
-        const nextFn =
-          typeof observerOrNext === 'function'
-            ? observerOrNext
-            : observerOrNext?.next?.bind(observerOrNext);
+      subscribe: (
+        observerOrNext: ((arr: number[]) => void) | { next?: (arr: number[]) => void },
+      ) => {
+        const nextFn = typeof observerOrNext === 'function' ? observerOrNext : observerOrNext?.next;
         if (!nextFn) return { unsubscribe() {} };
-        this.listeners.push(nextFn as (arr: number[]) => void);
-        return {
-          unsubscribe: () => {
-            const i = this.listeners.indexOf(nextFn);
-            if (i >= 0) this.listeners.splice(i, 1);
-          },
-        };
+        this.tempListeners.add(nextFn);
+        return { unsubscribe: () => this.tempListeners.delete(nextFn) };
       },
-    } as any;
+    };
   }
+
   emit(temps: number[]) {
-    this.listeners.forEach((l) => l(temps));
+    this.tempListeners.forEach((cb) => cb(temps));
   }
-  getIsActive(): {
-    subscribe: (observerOrNext: SubscribeObserver<boolean>) => { unsubscribe(): void };
-  } {
+
+  getIsActive() {
     return {
-      subscribe: (observerOrNext: SubscribeObserver<boolean>) => {
-        const nextFn =
-          typeof observerOrNext === 'function'
-            ? observerOrNext
-            : observerOrNext?.next?.bind(observerOrNext);
+      subscribe: (observerOrNext: ((b: boolean) => void) | { next?: (b: boolean) => void }) => {
+        const nextFn = typeof observerOrNext === 'function' ? observerOrNext : observerOrNext?.next;
         if (!nextFn) return { unsubscribe() {} };
-        this.activeSubs.push(nextFn as (b: boolean) => void);
+        this.activeListeners.add(nextFn);
+        // emitir estado inicial
         nextFn(false);
-        return {
-          unsubscribe: () => {
-            const i = this.activeSubs.indexOf(nextFn);
-            if (i >= 0) this.activeSubs.splice(i, 1);
-          },
-        };
+        return { unsubscribe: () => this.activeListeners.delete(nextFn) };
       },
-    } as any;
+    };
+  }
+
+  private emitActive(active: boolean) {
+    this.activeListeners.forEach((cb) => cb(active));
   }
 }
 
