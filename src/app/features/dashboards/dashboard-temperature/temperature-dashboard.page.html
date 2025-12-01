@@ -2,18 +2,13 @@
   <app-header [stats]="stats()"> </app-header>
 
   <app-current-temperature [value]="currentTemperature()"> </app-current-temperature>
-  <button
-    class="reconnect-btn"
-    (click)="reconnect()"
-    [disabled]="isReconnecting() || sseActive()"
-    title="Reconnect Server-Sent Events"
-  >
+  <button (click)="reconnect()" [disabled]="isReconnecting() || sseActive()">
     🔄 {{ isReconnecting() ? 'Reconectando...' : 'Reconnect SSE' }}
   </button>
   <app-chart-temperature [dataTemp]="temperatures()"> </app-chart-temperature>
 
-  <div *ngIf="workerResult() !== null" class="worker-result">
+  <div *ngIf="workerResult() !== null">
     Worker Result: <b>{{ workerResult() }}</b>
   </div>
-  <button class="run-worker" (click)="runHeavyCompute()">Run heavy compute</button>
+  <button (click)="runHeavyCompute()">Run heavy compute</button>
 </div>
