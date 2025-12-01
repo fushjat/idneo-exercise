@@ -17,7 +17,7 @@ export class TemperatureMockSse {
       const random = Math.random();
 
       // random disconnection
-      if (random < 0.02) {
+      if (random < 0.03) {
         this.eventSubject.next({ type: 'disconnect', data: 0 });
 
         this.isStreaming = false;
